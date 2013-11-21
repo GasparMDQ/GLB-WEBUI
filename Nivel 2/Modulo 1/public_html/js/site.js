@@ -82,13 +82,11 @@ function loadPhoneBookOnBrowser() {
 
 function addCRUD($element) {
   $element.append(function() {
-    var $content = $('<div></div>').addClass('crud');
-    $content.append(
+    var $content = $('<div></div>').addClass('crud').append(
       '<button type="button" id="edit-btn-'+
       $element.closest('.contact').find('header').attr('id').replace(/^\D+/g, '')+
       '" class="btn-edit" data-toggle="modal" data-target="#contact-modal">' +
-      '<span>Edit</span></button>');
-    $content.append(
+      '<span>Edit</span></button>').append(
       '<button type="button" class="btn-remove">' +
       '<span>Remove</span></button>');
     return $content;
@@ -98,22 +96,18 @@ function addCRUD($element) {
 function preSetFormForEdit($element) {
   var pbook = retrievePhonebook(),
     id = $element.attr('id').replace(/^\D+/g, '');
-  $form = $('#contact-form');
-  $form.find('#id_form').attr('value', id);
-  $form.find('#name_form').val(pbook.contacts[id].name);
-  $form.find('#address_form').val(pbook.contacts[id].address);
-  $form.find('#cell_form').val(pbook.contacts[id].cellphone);
-  $form.find('#home_form').val(pbook.contacts[id].phone);
-  $form.find('#email_form').val(pbook.contacts[id].email);
+
+  $('#contact-form').find('#id_form').attr('value', id).end()
+    .find('#name_form').val(pbook.contacts[id].name).end()
+    .find('#address_form').val(pbook.contacts[id].address).end()
+    .find('#cell_form').val(pbook.contacts[id].cellphone).end()
+    .find('#home_form').val(pbook.contacts[id].phone).end()
+    .find('#email_form').val(pbook.contacts[id].email);
 }
 
 function resetForm() {
-  $form = $('#contact-form');
-  $form.find('#id_form, #name_form, #address_form, '+
-    '#cell_form, #home_form, #email_form').removeAttr('value');
-  $form.find('#id_form, #name_form, #address_form, '+
-    '#cell_form, #home_form, #email_form').val('');
-  $form.show();
+  $('#contact-form').find('#id_form, #name_form, #address_form, '+
+    '#cell_form, #home_form, #email_form').removeAttr('value').val('').show();
 }
 
 function deleteContact($element) {
@@ -133,11 +127,11 @@ function showDetails($element) {
     var pbook = retrievePhonebook(),
       contact = pbook.contacts[id];
     $element.after(function() {
-      var $content = $('<div></div>').addClass('details').attr('id', 'detail_' + id);
-      $content.append(contact.address + '<br/>');
-      $content.append(contact.cellphone + '<br/>');
-      $content.append(contact.phone + '<br/>');
-      $content.append(contact.email + '<br/>');
+      var $content = $('<div></div>').addClass('details').attr('id', 'detail_' + id)
+        .append(contact.address + '<br/>')
+        .append(contact.cellphone + '<br/>')
+        .append(contact.phone + '<br/>')
+        .append(contact.email + '<br/>');
       return $content;
     });
   } else {
