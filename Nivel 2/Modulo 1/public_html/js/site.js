@@ -40,7 +40,7 @@ function savePhonebook(phonebook) {
 
 function retrievePhonebook() {
   var phonebook = localStorage.phonebook;
-  if (phonebook === null || phonebook == 'null') {
+  if (phonebook == null || phonebook == 'null') {
     phonebook = Object.create(null);
     phonebook.name = prompt('New phonebook owner:');
     phonebook.contacts = Array();
