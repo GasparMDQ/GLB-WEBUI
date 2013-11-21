@@ -40,7 +40,7 @@ function savePhonebook(phonebook) {
 
 function retrievePhonebook() {
   var phonebook = localStorage.phonebook;
-  if (phonebook == null || phonebook == 'null') {
+  if (phonebook === null || phonebook == 'null') {
     phonebook = Object.create(null);
     phonebook.name = prompt('New phonebook owner:');
     phonebook.contacts = Array();
@@ -57,20 +57,20 @@ function loadPhoneBookOnBrowser() {
   $('#phonebook-list').empty();
   $('body header > h1').empty().append(pbook.name + '\'s Phonebook');
   for (var i = 0; i < length; i++) {
-    var contact = pbook.contacts[i];
-    $('#phonebook-list').append(function() {
-      return '<div class="contact">' +
-        '<header id="header_' + i + '">' +
-        contact.name +
-        '</header>' +
-        '</div>';
-    });
+    var contact = pbook.contacts[i],
+      $contactTemplate = $('.js-contact-contact');
+      console.log($contactTemplate);
+    $('#phonebook-list').append(
+            $contactTemplate.clone().removeClass('js-contact-contact')
+            .find('header').attr('id', 'header_' + i).html(contact.name).end()
+      );
   }
-  $('.contact').addClass('row').append(function() {
+  
+  $('.contact').not('.js-contact-contact').addClass('row').append(function() {
     addCRUD($(this));
   });
   $('.contact > header').click(function() {
-    showDetails($(this));
+    toggleDetails($(this));
   });
   $('.btn-edit').click(function() {
     preSetFormForEdit($(this));
@@ -81,21 +81,15 @@ function loadPhoneBookOnBrowser() {
 }
 
 function addCRUD($element) {
-  $element.append(function() {
-    var $content = $('<div></div>').addClass('crud').append(
-      '<button type="button" id="edit-btn-'+
-      $element.closest('.contact').find('header').attr('id').replace(/^\D+/g, '')+
-      '" class="btn-edit" data-toggle="modal" data-target="#contact-modal">' +
-      '<span>Edit</span></button>').append(
-      '<button type="button" class="btn-remove">' +
-      '<span>Remove</span></button>');
-    return $content;
-  });
+  $element.append($('.js-contact-crud').clone().removeClass('js-contact-crud'));
 }
 
 function preSetFormForEdit($element) {
-  var pbook = retrievePhonebook(),
-    id = $element.attr('id').replace(/^\D+/g, '');
+  var row = $element.closest('.contact'),
+          
+    //replace all non numeric char with 'blank'
+    id = row.find('header').attr('id').replace(/^\D+/g, ''),
+    pbook = retrievePhonebook();
 
   $('#contact-form').find('#id_form').attr('value', id).end()
     .find('#name_form').val(pbook.contacts[id].name).end()
@@ -121,17 +115,18 @@ function deleteContact($element) {
   loadPhoneBookOnBrowser();
 }
 
-function showDetails($element) {
+function toggleDetails($element) {
   var id = $element.attr('id').replace(/^\D+/g, '');
   if (!$('#detail_' + id).length) {
     var pbook = retrievePhonebook(),
       contact = pbook.contacts[id];
     $element.after(function() {
-      var $content = $('<div></div>').addClass('details').attr('id', 'detail_' + id)
-        .append(contact.address + '<br/>')
-        .append(contact.cellphone + '<br/>')
-        .append(contact.phone + '<br/>')
-        .append(contact.email + '<br/>');
+      var $content = $('.js-contact-detail').clone()
+        .removeClass('js-contact-detail').attr('id', 'detail_' + id)
+        .append(contact.address + '<br/>' +
+                  contact.cellphone + '<br/>'+
+                  contact.phone + '<br/>' +
+                  contact.email + '<br/>');
       return $content;
     });
   } else {
