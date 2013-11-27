@@ -7,6 +7,7 @@ $(function() {
 
 function initApp() {
   retrievePhonebook();
+  resetForm();
   $('form').submit(function(e) {
     e.preventDefault();
     var contact = Object.create(null);
@@ -19,6 +20,11 @@ function initApp() {
     resetForm();
     loadPhoneBookOnBrowser();
     return false;
+  });
+  
+  $('form').bind('reset', function(e) {
+    e.preventDefault();
+    resetForm();
   });
 }
 
@@ -90,6 +96,8 @@ function preSetFormForEdit($element) {
     //replace all non numeric char with 'blank'
     id = row.find('header').attr('id').replace(/^\D+/g, ''),
     pbook = retrievePhonebook();
+  $('input[type=submit]').val('Save');
+  $('input[type=reset]').val('Cancel');
 
   $('#contact-form').find('#id_form').attr('value', id).end()
     .find('#name_form').val(pbook.contacts[id].name).end()
@@ -102,6 +110,8 @@ function preSetFormForEdit($element) {
 function resetForm() {
   $('#contact-form').find('#id_form, #name_form, #address_form, '+
     '#cell_form, #home_form, #email_form').removeAttr('value').val('').show();
+  $('input[type=submit]').val('Add');
+  $('input[type=reset]').val('Reset');
 }
 
 function deleteContact($element) {
