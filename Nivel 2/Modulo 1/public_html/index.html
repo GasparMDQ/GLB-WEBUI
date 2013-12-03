@@ -1,21 +1,18 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Web UI - Nivel 2 - Modulo 2</title>
+    <title>Web UI - Nivel 2 - Modulo 3</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="css/bootstrap.min.css" rel="stylesheet">        
-    <link href="css/site.css" rel="stylesheet">        
-    <script src="js/jquery-1.10.2.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/site.js"></script>
+    <script src="js/lib/require.js" data-main="js/app"></script>
   </head>
   <body>
     <div class="container">
       <header>
         <h1>Phonebook</h1>
       </header>
-      <section id="phonebook-form">
+      <section id="phonebook-form" class="row">
         <form id="contact-form">
             <input type="hidden" id="id_form" value="">
           <div class="form-group col-md-2">
@@ -39,27 +36,45 @@
             <input type="email" id="email_form" class="form-control" placeholder="your@email.com" required>
           </div>
           <footer>
-            <input type="submit" class="btn btn-success" value="Add"></input>
-            <input type="reset" class="btn btn-warning"></input>
+            <button type="button" class="btn btn-success btn-add" value="0"><span>Add</span></button>
+            <button type="button" class="btn btn-warning btn-reset" value="0"><span>Reset</span></button>
           </footer>
         </form>
       </section>
-      <section id="phonebook-list">
+      <section id="phonebook-list" class="row">
+        <ul class="col-md-4">
+        </ul>
+        <div class="col-md-8">
+          <input id="contact-detail-id" hidden value="0">
+          <div id="phonebook-details"></div>
+        </div>
       </section>
     </div>
-    <div class="hide">
-      <div class="js-contact-contact contact">
-        <header>
-        </header>
-      </div>
-      <div class="js-contact-detail details">
-      </div>
-      <div class="js-contact-crud crud">
-        <button type="button" class="btn btn-edit btn-warning btn-sm">
-          <span>Edit</span></button>
-        <button type="button" class="btn btn-remove btn-danger btn-sm">
-          <span>Remove</span></button>
-      </div>
-    </div>
+    <script type="text/template" id="contact-list">
+      <% _.each(contacts, function(contact) { %>
+      <li>
+        <h4 value="<%- contact.id %>"><%- contact.name %></h4>
+        <div class="crud">
+          <button type="button" class="btn btn-edit btn-warning btn-sm" value="<%- contact.id %>">
+            <span>Edit</span></button>
+          <button type="button" class="btn btn-remove btn-danger btn-sm" value="<%- contact.id %>">
+            <span>Remove</span></button>
+        </div>
+      </li>
+      <% }); %>
+    </script>      
+    <script type="text/template" id="contact-details">
+      <h3><%- contact.name %></h3>
+      <dl class="dl-horizontal">
+        <dt>Address:</dt>
+          <dd><%- contact.address %></dd>
+        <dt>CellPhone:</dt>
+          <dd><%- contact.cellphone %></dd>
+        <dt>Personal Phone:</dt>
+          <dd><%- contact.phone %></dd>
+        <dt>Email:</dt>
+          <dd><%- contact.email %></dd>
+      </dl>
+    </script>      
   </body>
 </html>
