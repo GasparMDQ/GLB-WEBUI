@@ -58,6 +58,22 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.bootstrap']
 
   
   var WareHouseView = Backbone.View.extend({
+    el: $('#products-list'),
+    template: _.template($('#products-base-tmpl').html()),
+    initialize: function () {
+      _.bindAll(this, 'render');
+      this.render();
+    },
+
+    render: function () {
+      this.$el.html(this.template({}));
+      new WareHouseListView({ el: this.$('ul') });
+      return this;
+    }
+    
+  });
+  
+  var WareHouseListView = Backbone.View.extend({
     el: $('body'),
     template: _.template($('#products-list-tmpl').html()),
     model: Product,
@@ -81,9 +97,12 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.bootstrap']
     },
 
     showDetails: function (ev) {
+      console.log('ShowDetails');
+      /**
       $('#contact-detail-id').attr('value', $(ev.currentTarget).attr('value'));
       var DetailView = new PhoneBookDetailView();
       DetailView.render();
+      */
     },
     
   });
@@ -107,9 +126,32 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.bootstrap']
     },
 
     guardar: function (ev) {
-      $('#contact-detail-id').attr('value', $(ev.currentTarget).attr('value'));
-      var DetailView = new PhoneBookDetailView();
-      DetailView.render();
+      console.log('Saving!');
+      
+      
+      var nName = $("#name_form").val();
+      var nPrice = $("#price_form").val();
+      var nDescription = $("#desc_form").val();
+      var nImage = $("#image_form").val();
+
+      if(nName == '' || nPrice == '' || nDescription == '' || nImage == ''){
+        alert('Campos incompletos!');
+      } else {
+        WareHouse.comparator = "id";
+        WareHouse.sort();
+
+        var nId = (!WareHouse.length) ? 1 : WareHouse.last().get('id') + 1;
+        var nProduct = new Product({
+          id: nId,
+          name: nName,
+          precio: nPrice,
+          descripcion: nDescription,
+          image: nImage
+        });
+        WareHouse.add(nProduct);
+        nProduct.save();
+        this.render();
+      }
     }
     
   });
