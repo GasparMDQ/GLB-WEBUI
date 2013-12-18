@@ -4,99 +4,125 @@
     <title>Web UI - Nivel 3 - Modulo 1</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="css/bootstrap.min.css" rel="stylesheet">        
+    <link href="css/foundation.min.css" rel="stylesheet">        
     <link href="css/site.css" rel="stylesheet">        
     <script src="js/lib/require.js" data-main="js/app"></script>
   </head>
   <body>
-    <div class="container">
-      <header>
-        <nav class="navbar navbar-default" role="navigation">
-          <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-1">
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#list">Shopping Cart</a>
-          </div>
-
-          <div class="collapse navbar-collapse" id="navbar-collapse-1">
-            <ul class="nav navbar-nav">
-              <li><a href="#list">Products List</a></li>
-              <li><a href="#newProduct">New Product</a></li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-              <li><a href="#">Cart <span class="badge">2</span></a></li>
-            </ul>
-          </div>
-        </nav>
+    <div class="inner-wrap">
+      <header id="navbar">
       </header>
-      
-      <section id="products-list" class="row">
+      <section id="products-top" class="row">
+      </section>
+      <section role="main">
+        <div class="row">
+          <div id="products-list" class="medium-4 columns">
+          </div>
+          <div class="medium-8 columns" id="shopping-cart-sidebar">
+          </div>
+        </div>
       </section>
     </div>
-    
-    <script type="text/template" id="products-base-tmpl">
-        <ul class="col-md-4">
+
+    <script type="text/template" id="navigation-tmpl">
+      <nav class="top-bar" data-topbar>
+        <ul class="title-area">
+          <li class="name">
+            <h1><a href="#">Shopping Cart</a></h1>
+          </li>
+          <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
         </ul>
-        <div class="col-md-8">
-          <input id="product-detail-id" hidden value="0">
-          <div id="product-details"></div>
-        </div>
+
+        <section class="top-bar-section">
+          <!-- Right Nav Section -->
+          <ul class="right">
+            <li><a href="#">Items on Cart: <span class="badge"><%- cartItems %></span></a></li>
+          </ul>
+
+          <!-- Left Nav Section -->
+          <ul class="left">
+            <li><a href="#list">Products List</a></li>
+            <li><a href="#newProduct">New Product</a></li>
+          </ul>
+        </section>
+      </nav>
     </script>
     
     <script type="text/template" id="products-list-tmpl">
-      <% _.each(products, function(product) { %>
-      <li>
-        <p>
-          <img src="<%- product.image %>" class="img-rounded thumb"> <%- product.name %>
-          <button type="button" class="btn btn-details btn-default btn-sm pull-right" value="<%- product.id %>">
-            <span>Detalles</span>
-          </button>
-        </p>
-      </li>
-      <% }); %>
+      <h2>Products List</h2>
+      <p></p>
+      <ul>
+        <% _.each(products, function(product) { %>
+        <li>
+          <p>
+            <%- product.name %>
+            <img src="<%- product.image %>" class="img-rounded thumb">
+            <button type="button" class="btn-details button radius tiny right" value="<%- product.id %>">
+              <span>Details</span>
+            </button>
+          </p>
+        </li>
+        <% }); %>
+      </ul>
     </script> 
     
     <script type="text/template" id="products-details-tmpl">
-      <h3><%- contact.name %></h3>
+      <h3><%- product.name %></h3>
+      <img src="<%- product.image %>" class="img-thumbnail detail">
       <dl class="dl-horizontal">
-        <dt>Address:</dt>
-          <dd><%- contact.address %></dd>
-        <dt>CellPhone:</dt>
-          <dd><%- contact.cellphone %></dd>
-        <dt>Personal Phone:</dt>
-          <dd><%- contact.phone %></dd>
-        <dt>Email:</dt>
-          <dd><%- contact.email %></dd>
+        <dt>Price:</dt>
+          <dd>$<%- product.precio %></dd>
+        <dt>Description:</dt>
+          <dd><%- product.descripcion %></dd>
       </dl>
+      <button type="button" class="btn-add button radius left" value="<%- product.id %>">
+        <span>Add to Cart</span>
+      </button>
     </script>      
     
     <script type="text/template" id="products-new-tmpl">
-      <div id="contact-form">
-        <input type="hidden" id="id_form" value="">
-        <div class="form-group col-md-2">
+      <h2>New Product</h2>
+      <p></p>
+      <div class="row">
+        <div class="medium-3 column">
           <label for="name_form">Name</label>
           <input type="text" id="name_form" class="form-control" placeholder="Nokia Lumia" required>
         </div>
-        <div class="form-group col-md-2">
+        <div class="medium-3 column">
           <label for="price_form">Price</label>
           <input type="text" id="price_form" class="form-control" placeholder="500" required>
         </div>
-        <div class="form-group col-md-2">
+        <div class="medium-3 column">
           <label for="desc_form">Description</label>
           <input type="text" id="desc_form" class="form-control" placeholder="It's a great cellphone!" required>
         </div>
-        <div class="form-group col-md-2">
+        <div class="medium-3 column">
           <label for="image_form">Image URL</label>
           <input type="text" id="image_form" class="form-control" placeholder="images/cellphone.jpg" required>
         </div>
-        <footer>
-          <button type="button" class="btn btn-success btn-add" value="0"><span>Add</span></button>
-        </footer>
+      </div>
+      <div class="row">
+        <button type="button" class="button radius btn-add success tiny left"><span>Add to Warehouse</span></button>
       </div>
     </script>      
     
+    
+    <script type="text/template" id="products-slide-tmpl">
+      <ul class="example-orbit" data-orbit>
+        <% _.each(products, function(product, idx) { %>
+          <li>
+            <img src="<%- product.image %>" alt="slide <%- idx%>" />
+            <div class="orbit-caption">
+              <h3><%- product.name %></h3>
+              <p>$<%- product.precio %></p>
+              <p><%- product.descripcion %></p>
+              <button type="button" class="small right" value="<%- product.id %>">
+                <span>Add to Cart</span>
+              </button>
+            </div>
+          </li>
+        <% }); %>
+      </ul>  
+    </script>      
   </body>
 </html>

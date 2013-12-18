@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 require.config({
   paths: {
@@ -6,7 +6,8 @@ require.config({
     'jquery': 'lib/jquery-1.10.2.min',
     'backbone': 'lib/backbone-min',
     'localstorage': 'lib/backbone.localStorage-min',
-    'jquery.bootstrap': 'lib/bootstrap.min'
+    'jquery.bootstrap': 'lib/bootstrap.min',
+    'jquery.foundation': 'lib/foundation.min'
   },  
   shim: {
     'underscore': {
@@ -18,11 +19,14 @@ require.config({
     },
     'jquery.bootstrap': {
         deps: ['jquery']
+    },
+    'jquery.foundation': {
+        deps: ['jquery']
     }
   }
 });
 
-require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.bootstrap'], function($, _, Backbone){
+require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'], function($, _, Backbone){
   
   var Product = Backbone.Model.extend({
     defaults: function () {
@@ -59,22 +63,6 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.bootstrap']
   
   var WareHouseView = Backbone.View.extend({
     el: $('#products-list'),
-    template: _.template($('#products-base-tmpl').html()),
-    initialize: function () {
-      _.bindAll(this, 'render');
-      this.render();
-    },
-
-    render: function () {
-      this.$el.html(this.template({}));
-      new WareHouseListView({ el: this.$('ul') });
-      return this;
-    }
-    
-  });
-  
-  var WareHouseListView = Backbone.View.extend({
-    el: $('body'),
     template: _.template($('#products-list-tmpl').html()),
     model: Product,
     events: {
@@ -88,27 +76,23 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.bootstrap']
 
     render: function () {
       WareHouse.fetch();
-      WareHouse.comparator = "name";
+      WareHouse.comparator = 'name';
       WareHouse.sort();
-      $('#products-list > ul').html(this.template({
+      this.$el.html(this.template({
         products: WareHouse.toJSON()
       }));
       return this;
     },
 
     showDetails: function (ev) {
-      console.log('ShowDetails');
-      /**
-      $('#contact-detail-id').attr('value', $(ev.currentTarget).attr('value'));
-      var DetailView = new PhoneBookDetailView();
-      DetailView.render();
-      */
-    },
+      var id = $(ev.target).closest('button').val();
+      new ProductDetailView({ product: WareHouse.get(id) });
+    }
     
   });
   
   var NewProductView = Backbone.View.extend({
-    el: $('#products-list'),
+    el: $('#products-top'),
     template: _.template($('#products-new-tmpl').html()),
     model: Product,
     events: {
@@ -126,16 +110,12 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.bootstrap']
     },
 
     guardar: function (ev) {
-      console.log('Saving!');
-      
-      
-      var nName = $("#name_form").val();
-      var nPrice = $("#price_form").val();
-      var nDescription = $("#desc_form").val();
-      var nImage = $("#image_form").val();
+      var nName = $('#name_form').val();
+      var nPrice = $('#price_form').val();
+      var nDescription = $('#desc_form').val();
+      var nImage = $('#image_form').val();
 
       if(nName == '' || nPrice == '' || nDescription == '' || nImage == ''){
-        alert('Campos incompletos!');
       } else {
         WareHouse.comparator = "id";
         WareHouse.sort();
@@ -156,54 +136,109 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.bootstrap']
     
   });
   
-  var PhoneBookDetailView = Backbone.View.extend({
-    el: $('#products-details'),
+  var ProductDetailView = Backbone.View.extend({
+    el: $('#shopping-cart-sidebar'),
     template: _.template($('#products-details-tmpl').html()),
     model: Product,
 
-    initialize: function () {
-      _.bindAll(this, "render");
+    initialize: function (options) {
+      this.options = options || {};
+      _.bindAll(this, 'render');
+      this.render();
     },
     
     render: function () {
-      /*
-      var cId = $('#contact-detail-id').val();
-      if (cId !== '0') {
-        var eContact = PhoneBook.get(cId);
-        this.$el.html(this.template({
-          contact: eContact.toJSON()
-        }));
-      } else {
-        this.$el.empty();
-      }
+      this.$el.html(this.template({ product: this.options.product.toJSON() }));
       return this;
-    */
     }
   });
   
+  var ProductSlideView = Backbone.View.extend({
+    el: $('#products-top'),
+    template: _.template($('#products-slide-tmpl').html()),
+    model: Product,
+
+    initialize: function (options) {
+      this.options = options || {};
+      _.bindAll(this, 'render');
+      this.render();
+    },
+    
+    render: function () {
+      this.$el.html(this.template({ products: WareHouse.toJSON() }));
+      this.$el.foundation({
+        orbit: {
+          animation: 'slide',
+          timer_speed: 4000,
+          pause_on_hover: true,
+          animation_speed: 500,
+          navigation_arrows: true,
+          bullets: true,
+          next_on_click: true
+        }
+      });
+      $(window).triggerHandler('resize'); //Hack para que calcule bien el alto del slide
+      return this;
+    }
+  });
+  
+  var NavBarView = Backbone.View.extend({
+    el: $('#navbar'),
+    template: _.template($('#navigation-tmpl').html()),
+
+    initialize: function (options) {
+      _.bindAll(this, 'render');
+      this.render();
+    },
+    
+    render: function () {
+      this.$el.html(this.template({ cartItems: LineaDeCaja.length }));
+      this.$el.foundation();
+      return this;
+    }
+  });
+  //Inicializo colecciones
   var WareHouse = new Warehouse();
   var LineaDeCaja = new Lineadecaja();
-  //var App = new WareHouseView();
+
+  //Cargo en memoria los items
+  WareHouse.fetch();
+  WareHouse.comparator = 'name';
+  WareHouse.sort();
+
   
+  //Armado de rutas
   var AppRouter = Backbone.Router.extend({
     routes: {
-      '': 'warehouseview',
+      '': 'homeview',
       'list': 'warehouseview',
       'checkout': 'checkout',
       'newProduct': 'newP'
     },
     
+    homeview: function(){
+      $('#products-list').empty();
+      $('#shopping-cart-sidebar').empty();
+      new NavBarView();
+      new ProductSlideView();
+    },
     warehouseview: function(){
+      $('#products-top').empty();
+      new NavBarView();
       new WareHouseView();
     },
     checkout: function(){
       //new CheckOutView();
     },
     newP: function(){
+      $('#products-list').empty();
+      $('#shopping-cart-sidebar').empty();
+      new NavBarView();
       new NewProductView();
     }
   });
   
+  //Inicializo router e historico
   var router = new AppRouter();
   Backbone.history.start();
 

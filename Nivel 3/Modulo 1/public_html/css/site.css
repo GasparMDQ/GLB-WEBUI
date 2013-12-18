@@ -1,6 +1,15 @@
-.thumb {
-    width: 45px;
+img.thumb{
+    height: 45px;
 }
+
+img.detail{
+    height: 250px;
+}
+
+img.slide{
+    height: 100px;
+}
+
 ul {
     list-style-type: none;
 }
