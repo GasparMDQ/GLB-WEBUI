@@ -13,3 +13,7 @@ img.slide{
 ul {
     list-style-type: none;
 }
+
+.orbit-slides-container{
+  height: 500px !important; 
+}

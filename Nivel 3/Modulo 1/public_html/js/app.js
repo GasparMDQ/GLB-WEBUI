@@ -238,7 +238,7 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
     }
   });
   
-  //Inicializo router e historico
+  //Inicializo router e historico y la app
   var router = new AppRouter();
   Backbone.history.start();
 
