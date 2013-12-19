@@ -75,8 +75,9 @@
         <dt>Description:</dt>
           <dd><%- product.descripcion %></dd>
       </dl>
-      <button type="button" class="btn-add button radius left" value="<%- product.id %>">
-        <span>Add to Cart</span>
+      
+      <button type="button" class="button radius left <% if(!inCart) {%>btn-add-cart<% }else{ %>disabled<% } %>" value="<%- product.id %>">
+        <span><% if(!inCart) {%>Add to Cart<% }else{ %>Already in Cart<% } %></span>
       </button>
     </script>      
     
@@ -103,6 +104,9 @@
       </div>
       <div class="row">
         <button type="button" class="button radius btn-add success tiny left"><span>Add to Warehouse</span></button>
+        <% if(collectionLenght==0) {%>
+          <button type="button" class="button radius btn-add-fix secondary tiny left"><span>Load Fixture</span></button>
+        <%}%>
       </div>
     </script>      
     
@@ -116,8 +120,8 @@
               <h3><%- product.name %></h3>
               <p>$<%- product.precio %></p>
               <p><%- product.descripcion %></p>
-              <button type="button" class="small right" value="<%- product.id %>">
-                <span>Add to Cart</span>
+              <button type="button" class="small right <% if(!inCart(product.id)) {%>btn-add-cart<% }else{ %>disabled<% } %>" value="<%- product.id %>">
+                <span><% if(!inCart(product.id)) {%>Add to Cart<% }else{ %>Already in Cart<% } %></span>
               </button>
             </div>
           </li>

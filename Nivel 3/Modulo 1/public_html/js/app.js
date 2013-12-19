@@ -6,7 +6,6 @@ require.config({
     'jquery': 'lib/jquery-1.10.2.min',
     'backbone': 'lib/backbone-min',
     'localstorage': 'lib/backbone.localStorage-min',
-    'jquery.bootstrap': 'lib/bootstrap.min',
     'jquery.foundation': 'lib/foundation.min'
   },  
   shim: {
@@ -16,9 +15,6 @@ require.config({
     'backbone': {
       deps: ['underscore', 'jquery'],
       exports: 'Backbone'
-    },
-    'jquery.bootstrap': {
-        deps: ['jquery']
     },
     'jquery.foundation': {
         deps: ['jquery']
@@ -71,7 +67,6 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
     
     initialize: function () {
       _.bindAll(this, 'render', 'showDetails');
-      this.render();
     },
 
     render: function () {
@@ -86,7 +81,8 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
 
     showDetails: function (ev) {
       var id = $(ev.target).closest('button').val();
-      new ProductDetailView({ product: WareHouse.get(id) });
+      ProductDetailV.setItem(WareHouse.get(id));
+      ProductDetailV.render();
     }
     
   });
@@ -96,16 +92,16 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
     template: _.template($('#products-new-tmpl').html()),
     model: Product,
     events: {
-      'click .btn-add': 'guardar'
+      'click .btn-add': 'guardar',
+      'click .btn-add-fix': 'addfixtures'
     },
     
     initialize: function () {
-      _.bindAll(this, 'render', 'guardar');
-      this.render();
+      _.bindAll(this, 'render', 'guardar', 'addfixtures');
     },
 
     render: function () {
-      this.$el.html(this.template());
+      this.$el.html(this.template({collectionLenght:WareHouse.length}));
       return this;
     },
 
@@ -132,6 +128,47 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
         nProduct.save();
         this.render();
       }
+    },
+
+    addfixtures: function (ev) {
+      var fixture =[
+        {
+          nName:'Cellphone',
+          nPrice:'500',
+          nDescription:'It\'s a great cellphone!',
+          nImage:'images/cellphone.jpg'
+        },
+        {
+          nName:'Watch',
+          nPrice:'120',
+          nDescription:'Reasonable price for an awesome product',
+          nImage:'images/watch.jpg'
+        },
+        {
+          nName:'Mouse',
+          nPrice:'30',
+          nDescription:'A great pointer device!',
+          nImage:'images/mouse.jpg'
+        }
+      ];
+      var nId;
+      var nProduct;
+      
+      WareHouse.comparator = "id";
+      for(var i=0;i<3;i++) {
+        WareHouse.sort();
+        nId = (!WareHouse.length) ? 1 : WareHouse.last().get('id') + 1;
+        nProduct = new Product({
+          id: nId,
+          name: fixture[i].nName,
+          precio: fixture[i].nPrice,
+          descripcion: fixture[i].nDescription,
+          image: fixture[i].nImage
+        });
+        WareHouse.add(nProduct);
+        nProduct.save();
+      }
+      this.render();
     }
     
   });
@@ -141,15 +178,30 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
     template: _.template($('#products-details-tmpl').html()),
     model: Product,
 
+    events: {
+      'click .btn-add-cart': 'addtocart',
+    },
+
     initialize: function (options) {
       this.options = options || {};
-      _.bindAll(this, 'render');
-      this.render();
+      _.bindAll(this, 'render', 'addtocart');
     },
     
     render: function () {
-      this.$el.html(this.template({ product: this.options.product.toJSON() }));
+      this.$el.html(this.template({
+        product: this.options.product.toJSON(),
+        inCart: checkLine(this.options.product.toJSON().id)
+      }));
       return this;
+    },
+    addtocart: function() {
+      if (addToCart(this.options.product.toJSON().id)){
+        NavBarV.render();
+        this.render();
+      };
+    },
+    setItem: function(item) {
+      this.options.product = item;
     }
   });
   
@@ -158,14 +210,26 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
     template: _.template($('#products-slide-tmpl').html()),
     model: Product,
 
+    events: {
+      'click .btn-add-cart': 'addtocart',
+    },
+
     initialize: function (options) {
       this.options = options || {};
-      _.bindAll(this, 'render');
-      this.render();
+      _.bindAll(this, 'render', 'addtocart');
+    },
+
+    addtocart: function(ev) {
+      var id = $(ev.target).closest('button').val();
+      if (addToCart(parseInt(id))){
+        NavBarV.render();
+        this.render();
+      };
     },
     
     render: function () {
-      this.$el.html(this.template({ products: WareHouse.toJSON() }));
+      WareHouse.comparator = 'name';
+      this.$el.html(this.template({ products: WareHouse.toJSON(), inCart:checkLine }));
       this.$el.foundation({
         orbit: {
           animation: 'slide',
@@ -186,26 +250,61 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
     el: $('#navbar'),
     template: _.template($('#navigation-tmpl').html()),
 
-    initialize: function (options) {
+    initialize: function () {
       _.bindAll(this, 'render');
-      this.render();
     },
     
     render: function () {
+      LineaDeCaja.fetch();
       this.$el.html(this.template({ cartItems: LineaDeCaja.length }));
       this.$el.foundation();
       return this;
     }
   });
+  
+  //Verificacion si el producto ya existe en la linea de caja
+  var checkLine = function (prodId) {
+    LineaDeCaja.fetch();
+    var result = _.findWhere(LineaDeCaja.toJSON(),{product_id:prodId});
+    return (typeof result !== 'undefined');
+  };
+  
+  //Agregado de items al carrito. Se extrajo porque se utiliza desde multiples vistas
+  var addToCart = function (prodId) {
+    if(!checkLine(prodId)){
+      LineaDeCaja.comparator = 'id';
+      LineaDeCaja.sort();
+      var nId = (!LineaDeCaja.length) ? 1 : LineaDeCaja.last().get('id') + 1;
+      var nItem = new Product({
+        id: nId,
+        product_id  : prodId,
+        cantidad: 1
+      });
+      LineaDeCaja.add(nItem);
+      nItem.save();
+    } else {
+      return false;
+    }
+    return true;
+  };
+  
+  
   //Inicializo colecciones
   var WareHouse = new Warehouse();
   var LineaDeCaja = new Lineadecaja();
 
   //Cargo en memoria los items
+  LineaDeCaja.fetch();
   WareHouse.fetch();
   WareHouse.comparator = 'name';
   WareHouse.sort();
 
+  //Inicializo las vistas
+  var NavBarV = new NavBarView();
+  var WareHouseV = new WareHouseView();
+  var NewProductV = new NewProductView();
+  var ProductSlideV = new ProductSlideView();
+  var ProductDetailV = new ProductDetailView();
   
   //Armado de rutas
   var AppRouter = Backbone.Router.extend({
@@ -219,13 +318,13 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
     homeview: function(){
       $('#products-list').empty();
       $('#shopping-cart-sidebar').empty();
-      new NavBarView();
-      new ProductSlideView();
+      NavBarV.render();
+      ProductSlideV.render();
     },
     warehouseview: function(){
       $('#products-top').empty();
-      new NavBarView();
-      new WareHouseView();
+      NavBarV.render();
+      WareHouseV.render();
     },
     checkout: function(){
       //new CheckOutView();
@@ -233,8 +332,8 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
     newP: function(){
       $('#products-list').empty();
       $('#shopping-cart-sidebar').empty();
-      new NavBarView();
-      new NewProductView();
+      NavBarV.render();
+      NewProductV.render();
     }
   });
   
