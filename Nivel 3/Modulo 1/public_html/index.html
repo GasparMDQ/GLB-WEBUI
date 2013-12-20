@@ -36,7 +36,7 @@
         <section class="top-bar-section">
           <!-- Right Nav Section -->
           <ul class="right">
-            <li><a href="#">Items on Cart: <span class="badge"><%- cartItems %></span></a></li>
+            <li><a href="#checkout">Items on Cart: <span class="badge"><%- cartItems %></span></a></li>
           </ul>
 
           <!-- Left Nav Section -->
@@ -76,9 +76,20 @@
           <dd><%- product.descripcion %></dd>
       </dl>
       
-      <button type="button" class="button radius left <% if(!inCart) {%>btn-add-cart<% }else{ %>disabled<% } %>" value="<%- product.id %>">
-        <span><% if(!inCart) {%>Add to Cart<% }else{ %>Already in Cart<% } %></span>
-      </button>
+      <div class="small-6 columns">
+        <div class="row collapse">
+          <div class="small-9 columns">
+            <button type="button" class="prefix button radius left <% if(!inCart) {%>btn-add-cart<% }else{ %>disabled<% } %>" value="<%- product.id %>">
+              <span><% if(!inCart) {%>Add to Cart<% }else{ %>Already in Cart<% } %></span>
+            </button>
+          </div>
+          <% if(!inCart) {%>
+            <div class="small-3 columns">
+              <input type="number" id="amount_form" class="form-control" placeholder="Quantity" required value="1" min="1">
+            </div>
+          <% } %>
+        </div>
+      </div>
     </script>      
     
     <script type="text/template" id="products-new-tmpl">
@@ -112,21 +123,76 @@
     
     
     <script type="text/template" id="products-slide-tmpl">
-      <ul class="example-orbit" data-orbit>
-        <% _.each(products, function(product, idx) { %>
-          <li>
-            <img src="<%- product.image %>" alt="slide <%- idx%>" />
-            <div class="orbit-caption">
-              <h3><%- product.name %></h3>
-              <p>$<%- product.precio %></p>
-              <p><%- product.descripcion %></p>
-              <button type="button" class="small right <% if(!inCart(product.id)) {%>btn-add-cart<% }else{ %>disabled<% } %>" value="<%- product.id %>">
-                <span><% if(!inCart(product.id)) {%>Add to Cart<% }else{ %>Already in Cart<% } %></span>
-              </button>
-            </div>
-          </li>
-        <% }); %>
-      </ul>  
-    </script>      
+      <% if (hasItems!=0) { %>
+        <ul class="example-orbit" data-orbit>
+          <% _.each(products, function(product, idx) { %>
+            <li>
+              <img src="<%- product.image %>" alt="slide <%- idx%>" />
+              <div class="orbit-caption">
+                <h3><%- product.name %></h3>
+                <p>$<%- product.precio %></p>
+                <p><%- product.descripcion %></p>
+                <button type="button" class="small right <% if(!inCart(product.id)) {%>btn-add-cart<% }else{ %>disabled<% } %>" value="<%- product.id %>">
+                  <span><% if(!inCart(product.id)) {%>Add to Cart<% }else{ %>Already in Cart<% } %></span>
+                </button>
+              </div>
+            </li>
+          <% }); %>
+        </ul>
+      <% }else{ %>
+        <h2>No items to show!</h2>
+        <a href="#newProduct">Add Items to WareHouse</a>
+      <% } %>
+    </script>
+    
+    <script type="text/template" id="cart-tmpl">
+      <% if (hasItems!=0) { %>
+        <h2>Your Cart</h2>
+        <p></p>
+        <table>
+          <thead>
+            <tr>
+              <th width="1920px">Item Name</th>
+              <th width="150px">Price</th>
+              <th width="50px">Quantity</th>
+              <th width="150px">Total</th>
+              <th width="5px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% _.each(items, function(item) { %>
+              <tr data-id=<%- item.id %>>
+                <td><%- item.name %></td>
+                <td>$ <%- item.precio %></td>
+                <td>
+                  <input type="number" id="amount_form" class="qty-input" placeholder="Quantity" required value="<%- item.cantidad %>" min="1">
+                </td>
+                <td>$ <%- item.cantidad * Number(item.precio) %></td>
+                <td>
+                  <button type="button" class="alert tiny btn-remove-item">
+                    <span>Remove</span>
+                  </button>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan=3></td>
+              <td>$ 
+                <%= _.reduce(items, function(sum, item){return sum+(item.cantidad * Number(item.precio));}, 0) %>              
+              </td>
+              <td>
+                <button type="button" class="tiny btn-checkout">
+                  <span>CheckOut</span>
+                </button>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      <% }else{ %>
+        <h2>Your cart is empty!</h2>
+      <% } %>
+    </script>
   </body>
 </html>

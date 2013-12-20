@@ -17,3 +17,7 @@ ul {
 .orbit-slides-container{
   height: 500px !important; 
 }
+
+th.full-width {
+  width: 100%;
+}

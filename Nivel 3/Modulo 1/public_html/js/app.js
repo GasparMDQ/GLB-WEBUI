@@ -46,7 +46,9 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
       return {
         id: '',
         product_id: '',
-        cantidad: ''
+        cantidad: '',
+        name:'',
+        precio:''
       };
     }
   });
@@ -195,13 +197,63 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
       return this;
     },
     addtocart: function() {
-      if (addToCart(this.options.product.toJSON().id)){
+      var qty = $('#amount_form').val();
+      if (addToCart(this.options.product.toJSON().id, parseInt(qty))){
         NavBarV.render();
         this.render();
       };
     },
     setItem: function(item) {
       this.options.product = item;
+    }
+  });
+  
+  var CheckOutView = Backbone.View.extend({
+    el: $('#products-top'),
+    template: _.template($('#cart-tmpl').html()),
+
+    events: {
+      'click .btn-checkout': 'checkout',
+      'click .btn-remove-item': 'removeitem',
+      'click .btn-reset-cart': 'resetcart',
+      'change .qty-input': 'updateitem',
+    },
+
+    initialize: function (options) {
+      this.options = options || {};
+      _.bindAll(this, 'render', 'checkout', 'removeitem', 'updateitem');
+    },
+    
+    render: function () {
+      this.$el.html(this.template({
+        items: LineaDeCaja.toJSON(),
+        hasItems: LineaDeCaja.length
+      }));
+      return this;
+    },
+    
+    checkout: function() {
+      var model;
+      while (model = LineaDeCaja.first()) {
+        model.destroy();
+      }      
+      NavBarV.render();
+      this.render();
+    },
+    
+    removeitem: function(ev) {
+      var id = $(ev.target).closest('tr').data('id');
+      var item = LineaDeCaja.get(id);
+      item.destroy();
+      LineaDeCaja.remove(item);
+      this.render();
+    },
+    updateitem: function(ev) {
+      var id = $(ev.target).closest('tr').data('id');
+      var item = LineaDeCaja.get(id);
+      item.set('cantidad', parseInt($(ev.target).val()));
+      item.save();
+      this.render();
     }
   });
   
@@ -221,7 +273,7 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
 
     addtocart: function(ev) {
       var id = $(ev.target).closest('button').val();
-      if (addToCart(parseInt(id))){
+      if (addToCart(parseInt(id), 1)){
         NavBarV.render();
         this.render();
       };
@@ -229,7 +281,8 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
     
     render: function () {
       WareHouse.comparator = 'name';
-      this.$el.html(this.template({ products: WareHouse.toJSON(), inCart:checkLine }));
+      WareHouse.fetch();
+      this.$el.html(this.template({ products: WareHouse.toJSON(), inCart:checkLine, hasItems: WareHouse.length }));
       this.$el.foundation({
         orbit: {
           animation: 'slide',
@@ -270,15 +323,19 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
   };
   
   //Agregado de items al carrito. Se extrajo porque se utiliza desde multiples vistas
-  var addToCart = function (prodId) {
+  var addToCart = function (prodId, qty) {
     if(!checkLine(prodId)){
+      var item = WareHouse.get(prodId).toJSON();
+      
       LineaDeCaja.comparator = 'id';
       LineaDeCaja.sort();
       var nId = (!LineaDeCaja.length) ? 1 : LineaDeCaja.last().get('id') + 1;
-      var nItem = new Product({
+      var nItem = new Item({
         id: nId,
         product_id  : prodId,
-        cantidad: 1
+        cantidad: qty,
+        name: item.name,
+        precio: item.precio
       });
       LineaDeCaja.add(nItem);
       nItem.save();
@@ -295,12 +352,13 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
 
   //Cargo en memoria los items
   LineaDeCaja.fetch();
-  WareHouse.fetch();
   WareHouse.comparator = 'name';
   WareHouse.sort();
+  WareHouse.fetch();
 
   //Inicializo las vistas
   var NavBarV = new NavBarView();
+  var CheckOutV = new CheckOutView();
   var WareHouseV = new WareHouseView();
   var NewProductV = new NewProductView();
   var ProductSlideV = new ProductSlideView();
@@ -327,7 +385,10 @@ require(['jquery', 'underscore', 'backbone', 'localstorage', 'jquery.foundation'
       WareHouseV.render();
     },
     checkout: function(){
-      //new CheckOutView();
+      $('#products-list').empty();
+      $('#shopping-cart-sidebar').empty();
+      NavBarV.render();
+      CheckOutV.render();
     },
     newP: function(){
       $('#products-list').empty();
